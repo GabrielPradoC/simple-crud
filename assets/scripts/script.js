@@ -1,9 +1,5 @@
-let temp = document.getElementsByTagName('template')[0];
-let updateBtnTemp = document.getElementsByTagName('template')[1];
-let addBtnTemp = document.getElementsByTagName('template')[2];
 let usrNameInput = document.getElementById('name');
 let usrAgeInput = document.getElementById('age');
-let table = document.querySelector('.tbody-content');
 appendAddBtn();//add
 appendTableData('Gabriel',20);
 appendTableData('Ana', 36);
@@ -34,6 +30,7 @@ function editFunc(){
 
 function appendEditBtns(){
     let actionDiv = removeActionBtns();
+    let updateBtnTemp = document.getElementsByTagName('template')[1];
     let btnsClone = updateBtnTemp.content.cloneNode(true);
     let updateBtn = btnsClone.querySelector('.btn-outline-primary');
     let cancelBtn = btnsClone.querySelector('.btn-outline-secondary');
@@ -51,6 +48,7 @@ function removeActionBtns(){
 
 function appendAddBtn(){
     let actionDiv = removeActionBtns();
+    let addBtnTemp = document.getElementsByTagName('template')[2];
     let btnsClone = addBtnTemp.content.cloneNode(true);
     let addBtn = btnsClone.querySelector('.btn-outline-success');
     addBtn.addEventListener('click', defaultAddFunc);
@@ -73,6 +71,7 @@ function clearUsrInput(){
 
 function appendTableData(name, age){
     if(inputCheck(name, age)) return;
+    let temp = document.getElementsByTagName('template')[0];
     let tempClone = temp.content.cloneNode(true);
     let tempNameTr = tempClone.querySelector('.name-td');
     let tempAgeTr = tempClone.querySelector('.age-td');
@@ -82,6 +81,7 @@ function appendTableData(name, age){
     editButn.addEventListener('click', editBtn);
     tempNameTr.textContent = name;
     tempAgeTr.textContent = parseInt(age);
+    let table = document.querySelector('.tbody-content');
     table.appendChild(tempClone);
 }
 

@@ -4,10 +4,11 @@ const usrAgeInput = document.getElementById('age');
 window.addEventListener('load', () => {
     appendAddBtn();
     createDataOnStorage();
-    const dataArray = getArrayFromStorage()
-    if(dataArray.length == 0 ){
+    let dataArray = getArrayFromStorage();
+    if (dataArray.length == 0) {
         addToLocalStorage('Gabriel', 20);
         addToLocalStorage('Ana', 36);
+        dataArray = getArrayFromStorage();
     }
     dataArray.forEach((obj) => {
         appendTableData(obj.name, obj.age);
@@ -33,7 +34,12 @@ function editFunc() {
     const ageField = TRData[1];
     const nameField = TRData[0];
     if (inputCheck(usrNameInput.value, usrAgeInput.value)) return;
-    updateValueOnStorage(nameField.textContent, ageField.textContent, usrNameInput.value, usrAgeInput.value)
+    updateValueOnStorage(
+        nameField.textContent,
+        ageField.textContent,
+        usrNameInput.value,
+        usrAgeInput.value,
+    );
     ageField.textContent = usrAgeInput.value;
     nameField.textContent = usrNameInput.value;
     cancelFunc();
@@ -68,10 +74,13 @@ function appendAddBtn() {
 
 function deleteBtn() {
     const TRData = getTRData.call(this);
-    const dataArray = getArrayFromStorage()
-    const index = dataArray.findIndex(obj=>{
-        return obj.name == TRData[0].textContent && obj.age == +TRData[1].textContent;
-    })
+    const dataArray = getArrayFromStorage();
+    const index = dataArray.findIndex((obj) => {
+        return (
+            obj.name == TRData[0].textContent &&
+            obj.age == +TRData[1].textContent
+        );
+    });
     dataArray.splice(index, 1);
     localStorage.setItem('data', JSON.stringify(dataArray));
     this.parentElement.parentElement.remove();
@@ -140,7 +149,7 @@ function retrieveTemplate(name, age) {
 }
 
 function checkIfExists(name, age) {
-    const dataArray = getArrayFromStorage()
+    const dataArray = getArrayFromStorage();
     const result = dataArray.find((object) => {
         return object.name == name && object.age == age;
     });
@@ -153,17 +162,16 @@ function createDataOnStorage() {
     }
 }
 
-
-function getTRData(){
+function getTRData() {
     const parentTr = this.parentElement.parentElement;
     const nameField = parentTr.querySelector('.name-td');
     const ageField = parentTr.querySelector('.age-td');
     return [nameField, ageField];
 }
 
-function updateValueOnStorage(name, age, newName, newAge){
-    const dataArray = getArrayFromStorage()
-    const index = dataArray.findIndex(obj=>{
+function updateValueOnStorage(name, age, newName, newAge) {
+    const dataArray = getArrayFromStorage();
+    const index = dataArray.findIndex((obj) => {
         return obj.name == name && obj.age == age;
     });
     dataArray[index].name = newName;
@@ -171,7 +179,7 @@ function updateValueOnStorage(name, age, newName, newAge){
     localStorage.setItem('data', JSON.stringify(dataArray));
 }
 
-function getArrayFromStorage(){
+function getArrayFromStorage() {
     const localStorageString = localStorage.getItem('data');
     const localStorageData = JSON.parse(localStorageString);
     return localStorageData;

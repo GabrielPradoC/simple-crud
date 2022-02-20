@@ -1,110 +1,108 @@
+"use strict";
 const usrNameInput = document.getElementById('name');
 const usrAgeInput = document.getElementById('age');
-
 window.addEventListener('load', () => {
     appendAddBtn();
     createDataOnStorage();
     let dataArray = getArrayFromStorage();
-    if (dataArray.length == 0) {
+    if (dataArray.length === 0) {
         addToLocalStorage('Gabriel', 20);
         addToLocalStorage('Ana', 36);
         dataArray = getArrayFromStorage();
     }
-    dataArray.forEach((obj) => {
-        appendTableData(obj.name, obj.age);
+    dataArray.forEach((person) => {
+        const { name, age } = person;
+        appendTableData(name, age);
     });
 });
-
-function editBtn() {
-    const tdObj = this.parentElement.parentElement;
-    const nameObj = tdObj.querySelector('.name-td');
-    const ageObj = tdObj.querySelector('.age-td');
-    usrNameInput.value = nameObj.textContent;
-    usrAgeInput.value = ageObj.textContent;
-    appendEditBtns.call(this);
+function editBtnCallback(tableRowElement) {
+    return () => {
+        const nameObj = tableRowElement.querySelector('.name-td');
+        const ageObj = tableRowElement.querySelector('.age-td');
+        usrNameInput.value = nameObj.textContent || "";
+        usrAgeInput.value = ageObj.textContent || "";
+        appendEditButtons(tableRowElement);
+    };
 }
-
 function cancelFunc() {
-    clearUsrInput();
+    clearUserInput();
     appendAddBtn();
 }
-
-function editFunc() {
-    const TRData = getTRData.call(this);
-    const ageField = TRData[1];
-    const nameField = TRData[0];
-    if (inputCheck(usrNameInput.value, usrAgeInput.value)) return;
-    updateValueOnStorage(
-        nameField.textContent,
-        ageField.textContent,
-        usrNameInput.value,
-        usrAgeInput.value,
-    );
-    ageField.textContent = usrAgeInput.value;
-    nameField.textContent = usrNameInput.value;
-    cancelFunc();
+function editFunc(tableRowElement) {
+    return () => {
+        const TRData = getTRData(tableRowElement);
+        const [tableNameElement, tableAgeElement] = TRData;
+        const { value: newNameValue } = usrNameInput;
+        const { value: newAgeValue } = usrAgeInput;
+        const { textContent: oldNameValue } = tableNameElement;
+        const { textContent: oldAgeValue } = tableAgeElement;
+        if (validateInput(newNameValue, +newAgeValue))
+            return;
+        updateValueOnStorage((oldNameValue || ''), +(oldAgeValue || 0), newNameValue, +newAgeValue);
+        tableAgeElement.textContent = newAgeValue;
+        tableNameElement.textContent = newNameValue;
+        cancelFunc();
+    };
 }
-
-function appendEditBtns() {
+function appendEditButtons(tableRowElement) {
     const actionDiv = removeActionBtns();
     const updateBtnTemp = document.getElementsByTagName('template')[1];
     const btnsClone = updateBtnTemp.content.cloneNode(true);
     const updateBtn = btnsClone.querySelector('.btn-outline-primary');
     const cancelBtn = btnsClone.querySelector('.btn-outline-secondary');
-    updateBtn.addEventListener('click', editFunc.bind(this));
+    updateBtn.addEventListener('click', editFunc(tableRowElement));
     cancelBtn.addEventListener('click', cancelFunc);
     actionDiv.appendChild(btnsClone);
 }
-
 function removeActionBtns() {
     const btnDiv = document.querySelector('.action-btns');
     const btns = btnDiv.querySelectorAll('button');
-    btns.forEach((item) => item.remove());
+    btns.forEach((button) => button.remove());
     return btnDiv;
 }
-
 function appendAddBtn() {
     const actionDiv = removeActionBtns();
-    const addBtnTemp = document.getElementsByTagName('template')[2];
-    const btnsClone = addBtnTemp.content.cloneNode(true);
-    const addBtn = btnsClone.querySelector('.btn-outline-success');
-    addBtn.addEventListener('click', defaultAddFunc);
-    actionDiv.appendChild(btnsClone);
+    const addButtonTemplate = document.getElementsByTagName('template')[2];
+    const addButtonTemplateClone = addButtonTemplate.content.cloneNode(true);
+    const addButton = addButtonTemplateClone.querySelector('.btn-outline-success');
+    addButton.addEventListener('click', defaultAddFunc);
+    actionDiv.appendChild(addButton);
 }
-
-function deleteBtn() {
-    const TRData = getTRData.call(this);
-    const dataArray = getArrayFromStorage();
-    const index = dataArray.findIndex((obj) => {
-        return (
-            obj.name == TRData[0].textContent &&
-            obj.age == +TRData[1].textContent
-        );
-    });
-    dataArray.splice(index, 1);
-    localStorage.setItem('data', JSON.stringify(dataArray));
-    this.parentElement.parentElement.remove();
+function deleteBtnCallback(tableRowElement) {
+    return () => {
+        const TRData = getTRData(tableRowElement);
+        const dataArray = getArrayFromStorage();
+        const [name, age] = TRData;
+        const index = dataArray.findIndex((person) => {
+            return (person.name === name.textContent &&
+                person.age === +(age.textContent || 0));
+        });
+        dataArray.splice(index, 1);
+        localStorage.setItem('data', JSON.stringify(dataArray));
+        removeChildrenNodes(tableRowElement);
+    };
 }
-
+function removeChildrenNodes(node) {
+    node.querySelectorAll('*').forEach(element => element.remove());
+    node.remove();
+}
 function defaultAddFunc() {
-    appendTableData(usrNameInput.value, usrAgeInput.value);
-    clearUsrInput();
+    appendTableData(usrNameInput.value, +usrAgeInput.value);
+    clearUserInput();
 }
-
-function clearUsrInput() {
+function clearUserInput() {
     usrNameInput.value = '';
     usrAgeInput.value = '';
 }
-
 function appendTableData(name, age) {
-    if (inputCheck(name, age)) return;
+    if (validateInput(name, age))
+        return;
     const templateClone = retrieveTemplate(name, age);
     addToLocalStorage(name, age);
     const table = document.querySelector('.tbody-content');
     table.appendChild(templateClone);
 }
-
-function inputCheck(name, age) {
+function validateInput(name, age) {
     if (!name && !age) {
         alert('You need to fill both fields to add a new user!');
         cancelFunc();
@@ -115,15 +113,16 @@ function inputCheck(name, age) {
         alert('Invalid name!');
         return true;
     }
-    if (isNaN(parseInt(age)) || parseInt(age) <= 0) {
+    if (isNaN(age) || age <= 0) {
         cancelFunc();
         alert('Invalid age!');
         return true;
     }
+    return false;
 }
-
 function addToLocalStorage(name, age) {
-    if (checkIfExists(name, age)) return;
+    if (checkIfExists(name, age))
+        return;
     const dataArray = getArrayFromStorage();
     const newEntry = {
         name: name,
@@ -132,55 +131,47 @@ function addToLocalStorage(name, age) {
     dataArray.push(newEntry);
     localStorage.setItem('data', JSON.stringify(dataArray));
 }
-
 function retrieveTemplate(name, age) {
-    if (inputCheck(name, age)) return;
-    const temp = document.getElementsByTagName('template')[0];
-    const tempClone = temp.content.cloneNode(true);
-    const tempNameTr = tempClone.querySelector('.name-td');
-    const tempAgeTr = tempClone.querySelector('.age-td');
-    const delBtn = tempClone.querySelector('.btn-outline-secondary');
-    const editButn = tempClone.querySelector('.btn-outline-primary');
-    delBtn.addEventListener('click', deleteBtn);
-    editButn.addEventListener('click', editBtn);
-    tempNameTr.textContent = name;
-    tempAgeTr.textContent = parseInt(age);
-    return tempClone;
+    const tableRowTemplate = document.getElementsByTagName('template')[0];
+    const templateFragment = tableRowTemplate.content.cloneNode(true);
+    const tableRow = templateFragment.querySelector('tr');
+    const nameTableData = tableRow.querySelector('.name-td');
+    const ageTableData = tableRow.querySelector('.age-td');
+    const deleteButton = tableRow.querySelector('.btn-outline-secondary');
+    const editButton = tableRow.querySelector('.btn-outline-primary');
+    deleteButton.addEventListener('click', deleteBtnCallback(tableRow));
+    editButton.addEventListener('click', editBtnCallback(tableRow));
+    nameTableData.textContent = name;
+    ageTableData.textContent = String(age);
+    return tableRow;
 }
-
 function checkIfExists(name, age) {
     const dataArray = getArrayFromStorage();
-    const result = dataArray.find((object) => {
-        return object.name == name && object.age == age;
+    return !!dataArray.find((person) => {
+        return (person.name === name && person.age === age);
     });
-    return result;
 }
-
 function createDataOnStorage() {
     if (!localStorage.getItem('data')) {
         localStorage.setItem('data', JSON.stringify([]));
     }
 }
-
-function getTRData() {
-    const parentTr = this.parentElement.parentElement;
-    const nameField = parentTr.querySelector('.name-td');
-    const ageField = parentTr.querySelector('.age-td');
+function getTRData(tableRowElement) {
+    const nameField = tableRowElement.querySelector('.name-td');
+    const ageField = tableRowElement.querySelector('.age-td');
     return [nameField, ageField];
 }
-
-function updateValueOnStorage(name, age, newName, newAge) {
+function updateValueOnStorage(oldName, oldAge, newName, newAge) {
     const dataArray = getArrayFromStorage();
-    const index = dataArray.findIndex((obj) => {
-        return obj.name == name && obj.age == age;
+    const index = dataArray.findIndex((person) => {
+        return (person.name === oldName && person.age === oldAge);
     });
     dataArray[index].name = newName;
     dataArray[index].age = newAge;
     localStorage.setItem('data', JSON.stringify(dataArray));
 }
-
 function getArrayFromStorage() {
-    const localStorageString = localStorage.getItem('data');
+    const localStorageString = localStorage.getItem('data') || '[]';
     const localStorageData = JSON.parse(localStorageString);
     return localStorageData;
 }

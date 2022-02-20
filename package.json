@@ -1,0 +1,16 @@
+{
+  "name": "crud-app",
+  "version": "2.0.0",
+  "private": "true",
+  "description": "Um projeto com uma implementação simples das possíveis operações de armazenamento de dados (CRUD)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\"",
+    "build": "tsc"
+  },
+  "author": "Gabriel Prado",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "typescript": "^4.5.5"
+  }
+}

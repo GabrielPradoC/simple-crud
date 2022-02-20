@@ -55,7 +55,7 @@ function editFunc(tableRowElement: HTMLTableRowElement): VoidFunction {
         tableAgeElement.textContent = newAgeValue;
         tableNameElement.textContent = newNameValue;
         cancelFunc();
-    } 
+    }
 }
 
 function appendEditButtons(tableRowElement: HTMLTableRowElement): void {
